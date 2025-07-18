@@ -62,9 +62,24 @@ export const useInboxStore = create<InboxStore>((set, get) => ({
       : [...state.selectedItems, id]
   })),
   
-  selectAllItems: () => set((state) => ({
-    selectedItems: state.filteredItems().map(item => item.id)
-  })),
+  selectAllItems: () => set((state) => {
+    const { items, searchQuery, statusFilter } = state;
+    
+    const filteredItems = items.filter(item => {
+      const matchesSearch = !searchQuery || 
+        item.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.client.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = !statusFilter || item.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+    
+    return {
+      selectedItems: filteredItems.map(item => item.id)
+    };
+  }),
   
   clearSelection: () => set({ selectedItems: [] }),
   
